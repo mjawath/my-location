@@ -3,9 +3,13 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+// import 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
+import 'leaflet/dist/leaflet.css'
+
 
 ReactDOM.render(
   <React.StrictMode>
+
     <App />
   </React.StrictMode>,
   document.getElementById('root')
