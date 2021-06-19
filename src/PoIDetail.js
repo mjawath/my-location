@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, CircleMarker, Tooltip } from 'react-leaflet'
-import {sendToServer} from "./rest-commons";
+import {fetchFromServer,fetchNearbyFromServer, sendToServer} from "./rest-commons";
 
 const shopsDummy = [{ "location": [1.3314917725173554, 103.93013377329994] }];
 const PoIDetail = () => {
@@ -27,6 +27,18 @@ const PoIDetail = () => {
 
     }
 
+    const fetchLocations=()=>{
+        //get current loction
+        const gps = shop.location;
+        console.log(gps)
+        if(!gps)return
+        fetchNearbyFromServer({req:gps}).then(function (response) {
+            setShops(response.data);
+          }).catch(e =>{
+            console.error(e);
+          });
+    }
+
 
     function LocationMarker() {
         const [position, setPosition] = useState(null)
@@ -34,7 +46,8 @@ const PoIDetail = () => {
             click(e) {
                 // map.locate()
                 const ss = { ...shop };
-                ss.location = e.latlng;
+                ss.location = {};
+                ss.location.geoPoint= {'lat':e.latlng.lat,'lon':e.latlng.lng};
                 console.log(e.latlng);
                 setShop(ss)
             },
@@ -46,7 +59,7 @@ const PoIDetail = () => {
 
         return position === null ? null : (
             <Marker position={shop.location}>
-                <Popup>You are here{shop.location}</Popup>
+                <Popup>You are here{shop.location.geoPoint}</Popup>
             </Marker>
         )
     }
@@ -56,7 +69,7 @@ const PoIDetail = () => {
         return shops && shops.map((s, index) => {
             const date = Date.now();
             return s.location && (<CircleMarker key={date + index}
-                center={s.location}
+                center={s.location.geoPoint}
                 pathOptions={{ color: 'red' }}
                 radius={5}>
                 <Tooltip opacity={0.7} permanent>{s.name}</Tooltip>
@@ -86,6 +99,7 @@ const PoIDetail = () => {
                     </form>
                 </div>
 
+                <button onClick={fetchLocations}>Load locations</button>
 
                 <div>
                     <MapContainer center={[1.3162514, 103.9443486]} zoom={13} scrollWheelZoom={false} style={{ width: '500px', height: 200 }}>
@@ -94,9 +108,6 @@ const PoIDetail = () => {
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
                         {points()}
-
-
-
                         <LocationMarker />
                     </MapContainer>
                     <span>{shop.name}</span>
